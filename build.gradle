@@ -1,0 +1,59 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+
+        // the latest version of the gradle
+        classpath 'com.android.tools.build:gradle:2.3.3'
+
+        // the latest version of the android-apt plugin
+        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+allprojects {
+    repositories {
+        jcenter()
+        mavenCentral()
+        mavenLocal()
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+
+ext {
+
+    //Versiones min y objetivo del SDK
+    minSdkVersion = 19
+    targetSdkVersion = 25
+    compileSdkVersion = 25
+    buildToolsVersion = '25.0.3'
+
+    supportLibraryVersion = '25.+'
+
+    //Libreria Android Annotations
+    AAVersion = '3.2'
+
+    //Version de la libreria Event Bus de Green Robot
+    EventBusVersion = '2.4.0'
+
+    //Version de la libreria Glide para el manejo de imagenes
+    GlideVersion = '3.6.1'
+
+    //Version de la libreria Volley para el manejo de peticiones HTTP
+    VolleyVersion = '1.0.0'
+
+    //Version de la libreria para el uso de Gson
+    GsonVersion = '2.4'
+
+    //Version de la libreria para Junit
+    JunitVersion = '1.0.2'
+}

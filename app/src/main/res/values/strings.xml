@@ -2,13 +2,20 @@
     <string name="app_name">GeoGextion</string>
     <string name="descripcion_logo_gextion">Logo GeoGextion</string>
     <string name="text_codigo_gextion">Identificacion:</string>
+    <string name="text_hint_gextion">Identificacion</string>
     <string name="text_button_gextion">Validar</string>
+    <string name="text_button_logout">Cerrar sesion</string>
 
     <string name="text_status_gextion">Estado: %s</string>
     <string name="error_numero_identificacion">Debes ingresar un numero de identificación.</string>
     <string name="error_identificacion_no_valida">El numero %s no es una identificación valida</string>
+    <string name="error_identificacion_no_registrada">El numero %s no pudo ser registrado</string>
+    <string name="error_cerrar_sesion">No es posible cerrar sesion, cierre la aplicación y elimine los datos desde la configuración del sistema</string>
     <string name="error_connection_internet">Debes tener una conexión a internet.</string>
     <string name="error_connection_gps">Debes tener el GPS activo.</string>
     <string name="error_validar_identificacion_error">No se puede verificar su número de identificacón en este momento.</string>
     <string name="error_text">por favor verifica y reinicia la aplicacion.</string>
+
+    <string name="text_obtain_location">Obtener localización</string>
+    <string name="rationale_location_text">Esta app necesita acceso a tu localización.</string>
 </resources>

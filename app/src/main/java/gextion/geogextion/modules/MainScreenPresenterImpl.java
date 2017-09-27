@@ -81,6 +81,13 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
         }
     }
 
+    @Override
+    public void cerrarSesion(Context context) {
+        if (mainScreenView != null) {
+            mainScreenInteractor.cerrarSesion(context);
+        }
+    }
+
     /**
      * @param context
      * @param identificacion
@@ -97,9 +104,9 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
      * @param identificacion
      */
     @Override
-    public void registrarPosicion(Context context, String identificacion) {
+    public void registrarPosicion(Context context, String identificacion, String latitud, String longitud) {
         if (mainScreenView != null) {
-            mainScreenInteractor.registrarPosicion(context, identificacion);
+            mainScreenInteractor.registrarPosicion(context, identificacion, latitud, longitud);
         }
     }
 
@@ -112,8 +119,11 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
     public void onEventMainThread(MainScreenEvent mainScreenEvent) {
         switch (mainScreenEvent.getEventType()) {
 
-            case MainScreenEvent.onVerifySuccess:
-                onVerifySuccess();
+            case MainScreenEvent.onVerifySuccessConfig:
+                onVerifySuccessConfig();
+                break;
+            case MainScreenEvent.onVerifySuccessLogin:
+                onVerifySuccessLogin(mainScreenEvent.getIdentificacion());
                 break;
             case MainScreenEvent.onVerifyError:
                 onVerifyError();
@@ -130,6 +140,9 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
             case MainScreenEvent.onIdentificacionNoValida:
                 onIdentificacionNoValida();
                 break;
+            case MainScreenEvent.onIdentificacionNoRegistrada:
+                onIdentificacionNoRegistrada();
+                break;
             case MainScreenEvent.onIdentificacionError:
                 onIdentificacionError();
                 break;
@@ -140,7 +153,13 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
                 onPosicionNoRegistrada();
                 break;
             case MainScreenEvent.onPosicionError:
-                onPosicionError();
+                onPosicionError(mainScreenEvent.getErrorMessage());
+                break;
+            case MainScreenEvent.onCierreSesionSuccess:
+                onCierreSesionSuccess();
+                break;
+            case MainScreenEvent.onCierreSesionError:
+                onCierreSesionError();
                 break;
         }
     }
@@ -154,9 +173,18 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
     /**
      * Metodo para manejar el acceso inicial
      */
-    private void onVerifySuccess() {
+    private void onVerifySuccessConfig() {
         if (mainScreenView != null) {
-            mainScreenView.onVerifySuccess();
+            mainScreenView.onVerifyConfigSuccess();
+        }
+    }
+
+    /**
+     * Metodo para manejar el acceso inicial
+     */
+    private void onVerifySuccessLogin(String identificacion) {
+        if (mainScreenView != null) {
+            mainScreenView.onVerifySuccessLogin(identificacion);
         }
     }
 
@@ -206,6 +234,15 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
     }
 
     /**
+     * Metodo para manejar el documento no valido al iniciar
+     */
+    private void onIdentificacionNoRegistrada() {
+        if (mainScreenView != null) {
+            mainScreenView.onIdentificacionNoRegistrada();
+        }
+    }
+
+    /**
      * Metodo para manejar el error al verificar el documento
      */
     private void onIdentificacionError() {
@@ -235,9 +272,27 @@ public class MainScreenPresenterImpl implements MainScreenPresenter {
     /**
      *
      */
-    private void onPosicionError() {
+    private void onPosicionError(String errorMessage) {
         if (mainScreenView != null) {
-            mainScreenView.onPosicionError();
+            mainScreenView.onPosicionError(errorMessage);
+        }
+    }
+
+    /**
+     *
+     */
+    private void onCierreSesionSuccess() {
+        if (mainScreenView != null) {
+            mainScreenView.onCierreSesionSuccess();
+        }
+    }
+
+    /**
+     *
+     */
+    private void onCierreSesionError() {
+        if (mainScreenView != null) {
+            mainScreenView.onCierreSesionError();
         }
     }
 

@@ -39,6 +39,11 @@ ext {
 
     supportLibraryVersion = '25.+'
 
+    //Libreria Easy Permissions
+    EasyPermissionsVersion = '1.0.0'
+
+    GooglePlayServicesVersion = '11.0.4'
+
     //Libreria Android Annotations
     AAVersion = '3.2'
 

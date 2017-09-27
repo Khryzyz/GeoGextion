@@ -5,9 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -38,6 +41,11 @@ public class MainScreenActivity extends AppCompatActivity implements MainScreenV
      */
 
     String identificacion = "";
+    String latitud = "";
+    String longitud = "";
+
+    private static final int REQUEST_PERMISSIONS = 100;
+    boolean boolean_permission;
 
     //Controles Vista principal
     @ViewById
@@ -83,6 +91,16 @@ public class MainScreenActivity extends AppCompatActivity implements MainScreenV
         //Llamada al metodo onCreate del presentador para el registro del bus de datos
         mainScreenPresenter.onCreate();
 
+        initApp();
+    }
+
+    /*
+    #############################################################################################
+    Metodo propios de la clase
+    #############################################################################################
+   */
+    private void initApp() {
+
         //Metodo para colocar la orientacion de la app
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
@@ -100,13 +118,9 @@ public class MainScreenActivity extends AppCompatActivity implements MainScreenV
             }
         }, 100);
 
+        fn_permission();
     }
 
-    /*
-    #############################################################################################
-    Metodo propios de la clase
-    #############################################################################################
-   */
     private void inicializarVistas() {
 
         mainContent.setVisibility(View.VISIBLE);
@@ -118,7 +132,6 @@ public class MainScreenActivity extends AppCompatActivity implements MainScreenV
         txvGeoGextionLog.setEnabled(false);
 
     }
-
 
     /**
      * Metodo para validar el documento
@@ -144,6 +157,22 @@ public class MainScreenActivity extends AppCompatActivity implements MainScreenV
             edtGeoGextionCodigo.setText("");
         }
 
+    }
+
+    /**
+     * Metodo para validar el documento
+     */
+    @Click(R.id.btnGextionLogout)
+    public void cerrarSesion() {
+        //Mostrar la barra de progreso
+        showProgress();
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mainScreenPresenter.cerrarSesion(MainScreenActivity.this);
+            }
+        }, 100);
     }
 
     /**
@@ -173,8 +202,9 @@ public class MainScreenActivity extends AppCompatActivity implements MainScreenV
         public void onReceive(Context context, Intent intent) {
 
             if (intent.getAction().equals(Constants.ACTION_RUN_SERVICE)) {
-
-                mainScreenPresenter.registrarPosicion(MainScreenActivity.this, identificacion);
+                latitud = intent.getStringExtra(Constants.PARAM_LATITUD);
+                longitud = intent.getStringExtra(Constants.PARAM_LONGITUD);
+                mainScreenPresenter.registrarPosicion(MainScreenActivity.this, identificacion, latitud, longitud);
 
             } else if (intent.getAction().equals(Constants.ACTION_RUN_FINISH)) {
 
@@ -194,11 +224,22 @@ public class MainScreenActivity extends AppCompatActivity implements MainScreenV
      * Metodo para manejar el acceso inicial
      */
     @Override
-    public void onVerifySuccess() {
+    public void onVerifyConfigSuccess() {
         edtGeoGextionCodigo.setEnabled(true);
         btnGextionValidar.setEnabled(true);
         txvGeoGextionLog.setEnabled(true);
         hideProgress();
+    }
+
+    /**
+     * Metodo para manejar el acceso inicial
+     */
+    @Override
+    public void onVerifySuccessLogin(String identificacion) {
+
+        this.identificacion = identificacion;
+
+        onIdentificacionValida();
     }
 
     /**
@@ -280,6 +321,21 @@ public class MainScreenActivity extends AppCompatActivity implements MainScreenV
 
     }
 
+    @Override
+    public void onIdentificacionNoRegistrada() {
+
+        txvGeoGextionLogInicio.setVisibility(View.VISIBLE);
+
+        String errorValidacion = String.format(getString(R.string.error_identificacion_no_registrada), identificacion);
+
+        txvGeoGextionLogInicio.setText(errorValidacion);
+
+        identificacion = "";
+
+        hideProgress();
+
+    }
+
     /**
      * Metodo para manejar el error al verificar el documento
      */
@@ -296,7 +352,7 @@ public class MainScreenActivity extends AppCompatActivity implements MainScreenV
 
     @Override
     public void onPosicionRegistrada() {
-        txvGeoGextionLog.setText("Posicion registrada" + "\n" + txvGeoGextionLog.getText());
+        txvGeoGextionLog.setText(latitud + "," + longitud + "\n" + txvGeoGextionLog.getText());
     }
 
     @Override
@@ -304,8 +360,61 @@ public class MainScreenActivity extends AppCompatActivity implements MainScreenV
         txvGeoGextionLog.setText("Posicion NO registrada" + "\n" + txvGeoGextionLog.getText());
     }
 
-    @Override
-    public void onPosicionError() {
-        txvGeoGextionLog.setText("Error al obtener posicion" + "\n" + txvGeoGextionLog.getText());
+    public void onPosicionError(String errorMessage) {
+        txvGeoGextionLog.setText(errorMessage + "\n" + txvGeoGextionLog.getText());
     }
+
+    @Override
+    public void onCierreSesionSuccess() {
+        hideProgress();
+        initApp();
+    }
+
+    @Override
+    public void onCierreSesionError() {
+        hideProgress();
+        txvGeoGextionLog.setText(getString(R.string.error_cerrar_sesion));
+    }
+
+    /*
+      #############################################################################################
+      Permisos
+      #############################################################################################
+     */
+
+    private void fn_permission() {
+        if ((ContextCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
+
+            if ((ActivityCompat.shouldShowRequestPermissionRationale(MainScreenActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION))) {
+
+
+            } else {
+                ActivityCompat.requestPermissions(MainScreenActivity.this,
+                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                        REQUEST_PERMISSIONS
+                );
+
+            }
+        } else {
+            boolean_permission = true;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        switch (requestCode) {
+            case REQUEST_PERMISSIONS: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    boolean_permission = true;
+
+                } else {
+                    Toast.makeText(getApplicationContext(), "Por favor permita los permisos", Toast.LENGTH_LONG).show();
+
+                }
+            }
+        }
+    }
+
 }

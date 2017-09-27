@@ -38,6 +38,12 @@ dependencies {
 
     compile "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
 
+    //Uso de la libreria e google para permisos faciles
+    compile "pub.devrel:easypermissions:$rootProject.ext.EasyPermissionsVersion"
+
+    //Uso de los google play services
+    compile "com.google.android.gms:play-services-location:$rootProject.ext.GooglePlayServicesVersion"
+
     //Uso del APT
     apt "org.androidannotations:androidannotations:$rootProject.ext.AAVersion"
 

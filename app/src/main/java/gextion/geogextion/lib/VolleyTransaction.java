@@ -71,10 +71,13 @@ public class VolleyTransaction {
                         new Response.ErrorListener() {
                             @Override
                             public void onErrorResponse(VolleyError error) {
-
-                                Log.d(TAG_ERROR_VOLLEY, error.getMessage());
-                                callback.onError(error.getMessage());
-
+                                if (error.getMessage() != null) {
+                                    Log.d(TAG_ERROR_VOLLEY, error.getMessage());
+                                    callback.onError(error.getMessage());
+                                } else {
+                                    Log.d(TAG_ERROR_VOLLEY, "Error General");
+                                    callback.onError("Error General");
+                                }
                             }
                         }
                 )

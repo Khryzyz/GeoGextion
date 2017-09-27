@@ -9,7 +9,7 @@ public class Constants {
      */
     public static final String ACTION_RUN_SERVICE = "gextion.geogextion.action.RUN_SERVICE";
     public static final String ACTION_RUN_FINISH = "gextion.geogextion.action.RUN_FINISH";
-
-    public static final String PARAM_STANDBY_FINISH = "gextion.geogextion.param.PARAM_STANDBY_FINISH";
+    public static final String PARAM_LATITUD= "LATITUD";
+    public static final String PARAM_LONGITUD = "LONGITUD";
 
 }

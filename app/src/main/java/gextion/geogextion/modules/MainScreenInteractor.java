@@ -11,6 +11,11 @@ public interface MainScreenInteractor {
 
     /**
      * @param context
+     */
+    void cerrarSesion(Context context);
+
+    /**
+     * @param context
      * @param identificacion
      */
     void validarDocumento(Context context, String identificacion);
@@ -19,5 +24,5 @@ public interface MainScreenInteractor {
      * @param context
      * @param identificacion
      */
-    void registrarPosicion(Context context, String identificacion);
+    void registrarPosicion(Context context, String identificacion, String latitud, String longitud);
 }

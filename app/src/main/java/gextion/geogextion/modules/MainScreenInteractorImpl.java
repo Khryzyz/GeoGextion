@@ -42,6 +42,11 @@ public class MainScreenInteractorImpl implements MainScreenInteractor {
         mainScreenRepository.validateInitialConfig(context);
     }
 
+    @Override
+    public void cerrarSesion(Context context) {
+        mainScreenRepository.cerrarSesion(context);
+    }
+
     /**
      * @param context
      * @param identificacion
@@ -56,7 +61,7 @@ public class MainScreenInteractorImpl implements MainScreenInteractor {
      * @param identificacion
      */
     @Override
-    public void registrarPosicion(Context context, String identificacion) {
-        mainScreenRepository.registrarPosicion(context, identificacion);
+    public void registrarPosicion(Context context, String identificacion, String latitud, String longitud) {
+        mainScreenRepository.registrarPosicion(context, identificacion, latitud, longitud);
     }
 }

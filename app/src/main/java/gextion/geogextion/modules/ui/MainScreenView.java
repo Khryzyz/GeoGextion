@@ -8,7 +8,9 @@ public interface MainScreenView {
     /**
      * Metodo para manejar el acceso inicial
      */
-    void onVerifySuccess();
+    void onVerifyConfigSuccess();
+
+    void onVerifySuccessLogin(String identificacion);
 
     /**
      * Metodo para manejar el erroe en acceso inicial
@@ -36,6 +38,11 @@ public interface MainScreenView {
     void onIdentificacionNoValida();
 
     /**
+     *
+     */
+    void onIdentificacionNoRegistrada();
+
+    /**
      * Metodo para manejar el error al verificar el documento
      */
     void onIdentificacionError();
@@ -53,6 +60,16 @@ public interface MainScreenView {
     /**
      *
      */
-    void onPosicionError();
+    void onPosicionError(String errorMessage);
+
+    /**
+     *
+     */
+    void onCierreSesionSuccess();
+
+    /**
+     *
+     */
+    void onCierreSesionError();
 
 }

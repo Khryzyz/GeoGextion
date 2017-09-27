@@ -1,8 +1,6 @@
 package gextion.geogextion.modules;
 
 import android.content.Context;
-import android.location.Criteria;
-import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -12,6 +10,7 @@ import com.google.gson.JsonObject;
 
 import java.util.HashMap;
 
+import gextion.geogextion.database.AppDatabase;
 import gextion.geogextion.global.InfoGlobalTransaccionREST;
 import gextion.geogextion.lib.EventBus;
 import gextion.geogextion.lib.GreenRobotEventBus;
@@ -57,7 +56,15 @@ public class MainScreenRepositoryImpl implements MainScreenRepository {
 
 
         if (verifyInternetConnection && verifyGPSConnection) {
-            postEvent(MainScreenEvent.onVerifySuccess);
+            if (AppDatabase.getInstance(context).conteoRegistroLogin() > 0) {
+
+                postEvent(MainScreenEvent.onVerifySuccessLogin, null, AppDatabase.getInstance(context).getIdentificacionLogin());
+
+            } else {
+
+                postEvent(MainScreenEvent.onVerifySuccessConfig);
+
+            }
         } else {
             if (!verifyInternetConnection) {
                 postEvent(MainScreenEvent.onVerifyInternetConnectionError);
@@ -65,10 +72,18 @@ public class MainScreenRepositoryImpl implements MainScreenRepository {
             if (!verifyGPSConnection) {
                 postEvent(MainScreenEvent.onVerifyGPSConnectionError);
             }
-
             postEvent(MainScreenEvent.onVerifyError);
         }
 
+    }
+
+    @Override
+    public void cerrarSesion(Context context) {
+        if(AppDatabase.getInstance(context).closeLogin()){
+            postEvent(MainScreenEvent.onCierreSesionSuccess);
+        }else{
+            postEvent(MainScreenEvent.onCierreSesionError);
+        }
     }
 
     /**
@@ -76,7 +91,7 @@ public class MainScreenRepositoryImpl implements MainScreenRepository {
      * @param identificacion
      */
     @Override
-    public void validarDocumento(Context context, String identificacion) {
+    public void validarDocumento(final Context context, final String identificacion) {
 
         final HashMap<String, String> parameters = new HashMap<>();
 
@@ -92,7 +107,16 @@ public class MainScreenRepositoryImpl implements MainScreenRepository {
                     public void onSuccess(JsonObject data) {
 
                         if (data.get(InfoGlobalTransaccionREST.STATUS_KEY).getAsString().equals(InfoGlobalTransaccionREST.STATUS_KEY_TRUE)) {
-                            postEvent(MainScreenEvent.onIdentificacionValida);
+
+                            if (AppDatabase.getInstance(context).insertRegistroLogin(identificacion)) {
+
+                                postEvent(MainScreenEvent.onIdentificacionValida);
+
+                            } else {
+
+                                postEvent(MainScreenEvent.onIdentificacionNoRegistrada);
+
+                            }
                         } else {
                             postEvent(MainScreenEvent.onIdentificacionNoValida);
                         }
@@ -110,68 +134,41 @@ public class MainScreenRepositoryImpl implements MainScreenRepository {
      * @param identificacion
      */
     @Override
-    public void registrarPosicion(Context context, String identificacion) {
-
-        String latitud;
-
-        String longitud;
-
-        if (verifyGPSConnection(context)) {
-
-            LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-
-            Criteria criteria = new Criteria();
-
-            String provider = locationManager.getBestProvider(criteria, true);
-
-            Location location = locationManager.getLastKnownLocation(provider);
-
-            if (location != null) {
-
-                latitud = String.valueOf(location.getLatitude());
-                longitud = String.valueOf(location.getLongitude());
-
-                final HashMap<String, String> parameters = new HashMap<>();
-
-                parameters.put(InfoGlobalTransaccionREST.GEOLOCALIZACION_PARAM_IDENTIFICACION, identificacion);
-                parameters.put(InfoGlobalTransaccionREST.GEOLOCALIZACION_PARAM_LONGITUD, longitud);
-                parameters.put(InfoGlobalTransaccionREST.GEOLOCALIZACION_PARAM_LATITUD, latitud);
-
-                Log.i("identificacion", identificacion);
-                Log.i("latitud", latitud);
-                Log.i("longitud", longitud);
-
-                VolleyTransaction volleyTransaction = new VolleyTransaction();
-
-                volleyTransaction.getData(context,
-                        parameters,
-                        InfoGlobalTransaccionREST.METHOD_REGISTRAR_UBICACION,
-                        new VolleyTransaction.VolleyCallback() {
-                            @Override
-                            public void onSuccess(JsonObject data) {
-
-                                if (data.get(InfoGlobalTransaccionREST.STATUS_KEY).getAsString().equals(InfoGlobalTransaccionREST.STATUS_KEY_TRUE)) {
-                                    postEvent(MainScreenEvent.onPosicionRegistrada);
-                                    Log.i("Evento", "Posicion registrada");
-                                } else {
-                                    postEvent(MainScreenEvent.onPosicionNoRegistrada);
-                                    Log.i("Evento", "Posicion registrada");
-                                }
-                            }
-
-                            @Override
-                            public void onError(String errorMessage) {
-                                postEvent(MainScreenEvent.onPosicionError);
-                            }
-                        });
-            } else {
-                postEvent(MainScreenEvent.onPosicionError);
-            }
-
-        }
+    public void registrarPosicion(Context context, String identificacion, String latitud, String longitud) {
 
 
+        final HashMap<String, String> parameters = new HashMap<>();
+
+        parameters.put(InfoGlobalTransaccionREST.GEOLOCALIZACION_PARAM_IDENTIFICACION, identificacion);
+        parameters.put(InfoGlobalTransaccionREST.GEOLOCALIZACION_PARAM_LONGITUD, longitud);
+        parameters.put(InfoGlobalTransaccionREST.GEOLOCALIZACION_PARAM_LATITUD, latitud);
+
+
+        VolleyTransaction volleyTransaction = new VolleyTransaction();
+
+        volleyTransaction.getData(context,
+                parameters,
+                InfoGlobalTransaccionREST.METHOD_REGISTRAR_UBICACION,
+                new VolleyTransaction.VolleyCallback() {
+                    @Override
+                    public void onSuccess(JsonObject data) {
+
+                        if (data.get(InfoGlobalTransaccionREST.STATUS_KEY).getAsString().equals(InfoGlobalTransaccionREST.STATUS_KEY_TRUE)) {
+                            postEvent(MainScreenEvent.onPosicionRegistrada);
+                            Log.i("Evento", "Posicion registrada");
+                        } else {
+                            postEvent(MainScreenEvent.onPosicionNoRegistrada);
+                            Log.i("Evento", "Posicion no registrada");
+                        }
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        postEvent(MainScreenEvent.onPosicionError, MainScreenEvent.errorMessagePositionNotRegistered);
+                    }
+                });
     }
+
 
     /**
      * #############################################################################################
@@ -212,7 +209,7 @@ public class MainScreenRepositoryImpl implements MainScreenRepository {
 
         LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
-        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
             resultVerifyGPSConnection = true;
 
         }
@@ -226,7 +223,7 @@ public class MainScreenRepositoryImpl implements MainScreenRepository {
      * @param type
      * @param errorMessage
      */
-    private void postEvent(int type, String errorMessage) {
+    private void postEvent(int type, String errorMessage, String identificacion) {
 
         MainScreenEvent mainScreenEvent = new MainScreenEvent();
 
@@ -235,6 +232,11 @@ public class MainScreenRepositoryImpl implements MainScreenRepository {
         if (errorMessage != null) {
             mainScreenEvent.setErrorMessage(errorMessage);
         }
+
+        if (identificacion != null) {
+            mainScreenEvent.setIdentificacion(identificacion);
+        }
+
 
         EventBus eventBus = GreenRobotEventBus.getInstance();
 
@@ -248,8 +250,20 @@ public class MainScreenRepositoryImpl implements MainScreenRepository {
      */
     private void postEvent(int type) {
 
-        postEvent(type, null);
+        postEvent(type, null, null);
 
     }
+
+    /**
+     * Sobrecarga del metodo postevent
+     *
+     * @param type
+     */
+    private void postEvent(int type, String errorMessage) {
+
+        postEvent(type, errorMessage, null);
+
+    }
+
 
 }

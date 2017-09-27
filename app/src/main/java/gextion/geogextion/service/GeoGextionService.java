@@ -2,7 +2,13 @@ package gextion.geogextion.service;
 
 import android.app.Service;
 import android.content.Intent;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -12,78 +18,36 @@ import java.util.TimerTask;
 /**
  * Un {@link Service} que notifica la cantidad de memoria disponible en el sistema
  */
-public class GeoGextionService extends Service {
+public class GeoGextionService extends Service implements LocationListener {
 
     private static final String TAG = GeoGextionService.class.getSimpleName();
 
-    TimerTask timerTask;
+    boolean isGPSEnable = false;
+    boolean isNetworkEnable = false;
+    double latitude, longitude;
+    LocationManager locationManager;
+    Location location;
+    private Handler handler = new Handler();
+    private Timer timer = null;
+    long intervaloNotificacion = 600000;
 
-    /**
-     * Constructor de la clase
-     */
     public GeoGextionService() {
 
     }
 
-    /**
-     * Sobrecarga del metodo IBinder
-     *
-     * @param intent
-     * @return
-     */
+    @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-
         return null;
-
     }
 
-    /**
-     * Sobrecarga del metodo onCreate
-     */
     @Override
     public void onCreate() {
+        super.onCreate();
 
-        Log.d(TAG, "Servicio creado...");
+        timer = new Timer();
+        timer.schedule(new TimerTaskToGetLocation(), 5, intervaloNotificacion);
 
-    }
-
-    /**
-     * Sobrecarga dl metodo onStartCommand
-     *
-     * @param intent
-     * @param flags
-     * @param startId
-     * @return
-     */
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-
-        Log.d(TAG, "Servicio iniciado...");
-
-
-        Timer timer = new Timer();
-
-        timerTask = new TimerTask() {
-
-            /**
-             * Ejecucion de la tarea
-             */
-            @Override
-            public void run() {
-
-                Intent localIntent = new Intent(Constants.ACTION_RUN_SERVICE);
-
-                // Emitir el intent a la actividad
-                LocalBroadcastManager.getInstance(GeoGextionService.this).sendBroadcast(localIntent);
-
-            }
-
-        };
-
-        timer.scheduleAtFixedRate(timerTask, 0, 60000);
-
-        return START_NOT_STICKY;
     }
 
     /**
@@ -92,7 +56,7 @@ public class GeoGextionService extends Service {
     @Override
     public void onDestroy() {
 
-        timerTask.cancel();
+        timer.cancel();
 
         Intent localIntent = new Intent(Constants.ACTION_RUN_FINISH);
 
@@ -101,5 +65,87 @@ public class GeoGextionService extends Service {
         Log.d(TAG, "Servicio destruido...");
     }
 
+    @Override
+    public void onLocationChanged(Location location) {
 
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
+
+    private void fn_getlocation() {
+        locationManager = (LocationManager) getApplicationContext().getSystemService(LOCATION_SERVICE);
+        isGPSEnable = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        isNetworkEnable = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+        if (isGPSEnable || isNetworkEnable) {
+
+            boolean locationCaptured = false;
+
+            if (isNetworkEnable && !locationCaptured) {
+                location = null;
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 0, this);
+                if (locationManager != null) {
+                    location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                    if (location != null) {
+                        latitude = location.getLatitude();
+                        longitude = location.getLongitude();
+                        fn_update(location);
+                        locationCaptured = true;
+                    }
+                }
+
+            }
+            if (isGPSEnable && !locationCaptured) {
+                location = null;
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
+                if (locationManager != null) {
+                    location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                    if (location != null) {
+                        latitude = location.getLatitude();
+                        longitude = location.getLongitude();
+                        fn_update(location);
+                        locationCaptured = true;
+                    }
+                }
+            }
+        }
+
+    }
+
+    private class TimerTaskToGetLocation extends TimerTask {
+        @Override
+        public void run() {
+
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    fn_getlocation();
+                }
+            });
+
+        }
+    }
+
+    private void fn_update(Location location) {
+
+        Intent localIntent = new Intent(Constants.ACTION_RUN_SERVICE);
+        localIntent.putExtra(Constants.PARAM_LATITUD, String.valueOf(location.getLatitude()));
+        localIntent.putExtra(Constants.PARAM_LONGITUD, String.valueOf(location.getLongitude()));
+        // Emitir el intent a la actividad
+        LocalBroadcastManager.getInstance(GeoGextionService.this).sendBroadcast(localIntent);
+
+    }
 }

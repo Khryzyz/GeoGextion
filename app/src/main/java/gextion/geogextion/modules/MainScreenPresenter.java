@@ -23,6 +23,11 @@ public interface MainScreenPresenter {
 
     /**
      * @param context
+     */
+    void cerrarSesion(Context context);
+
+    /**
+     * @param context
      * @param identificacion
      */
     void validarDocumento(Context context, String identificacion);
@@ -31,7 +36,7 @@ public interface MainScreenPresenter {
      * @param context
      * @param identificacion
      */
-    void registrarPosicion(Context context, String identificacion);
+    void registrarPosicion(Context context, String identificacion, String latitud, String longitud);
 
     /**
      * Metodo para recibir los eventos generados

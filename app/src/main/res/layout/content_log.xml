@@ -15,15 +15,27 @@
         android:contentDescription="@string/descripcion_logo_gextion"
         android:src="@drawable/logo_gextion" />
 
+    <Button
+        android:id="@+id/btnGextionLogout"
+        style="@style/Widget.AppCompat.Button.Small"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imvGextionLogo"
+        android:paddingEnd="10dp"
+        android:paddingStart="10dp"
+        android:text="@string/text_button_logout" />
+
     <TextView
         android:id="@+id/txvGeoGextionLog"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/imvGextionLogo"
+        android:layout_below="@+id/btnGextionLogout"
         android:layout_marginBottom="20dp"
         android:background="@color/colorBlack"
         android:paddingEnd="10dp"
         android:paddingStart="10dp"
+        android:scrollbars="vertical"
         android:textColor="@color/colorWhite" />
+
 
 </RelativeLayout>
